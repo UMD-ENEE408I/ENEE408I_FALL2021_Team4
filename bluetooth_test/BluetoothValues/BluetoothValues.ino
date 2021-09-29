@@ -51,7 +51,7 @@ void mouse1FunctionCall(BLEDevice central, BLECharacteristic characteristic) {
   Serial.print("mouse1FunctionCall: ");
   
   //serial_buffer will hold that value that will be sent and recieved through BlueTooth
-  uint8_t serial_buffer = MOUSE1.value();
+  uint16_t serial_buffer = MOUSE1.value();
 
   Serial.println(serial_buffer);
 }
