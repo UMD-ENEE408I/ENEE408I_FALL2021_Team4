@@ -35,7 +35,7 @@ void loop() {
   read_line(&line_data);
   printBinaryN(line_data, 13);
 
-  if((line_data&0b1110000000000) == 0b1110000000000){          //if car sees left turn 
+  if((line_data&0b1111100000000) == 0b1111100000000){          //if car sees left turn 
       //inch_forward(DEFAULT_SPEED, 60); 
       drive_left(TURN_SPEED);
       while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        
@@ -71,7 +71,7 @@ void loop() {
           } drive_stop(DEFAULT_SPEED);
       }
   }*/
-  else if((line_data&0b0000000000000) == 0b0000000000000){          //U-turn
+  else if(!line_data){   //line_data == 0x0000       //U-turn
       drive_left(TURN_SPEED);
       while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        
         //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
