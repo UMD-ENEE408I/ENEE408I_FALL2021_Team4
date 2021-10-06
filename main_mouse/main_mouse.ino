@@ -37,12 +37,11 @@ void loop() {
 
   if((line_data&0b1110000000000) == 0b1110000000000){          //if car sees left turn 
       //inch_forward(DEFAULT_SPEED, 60); 
-      //drive_stop(DEFAULT_SPEED);
-      while((line_data&0b0000000011000) != 0b0000000011000  &&  ){        //keep turning left until center sensor detects line
-          //Serial.println("TURN LEFT");
-          drive_left(TURN_SPEED);
+      drive_left(TURN_SPEED);
+      while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        
+        //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
           read_line(&line_data);
-      } //drive_stop(DEFAULT_SPEED);          
+      }        
   }
   /*
   else if((line_data&0b0000000000111) == line_data&0b0000000000111){    //if car is at intersectio or right turn
@@ -71,15 +70,14 @@ void loop() {
               drive_right(TURN_SPEED);
           } drive_stop(DEFAULT_SPEED);
       }
-  }
-  
+  }*/
   else if((line_data&0b0000000000000) == 0b0000000000000){          //U-turn
-      while(!(line_data&0b0000000100000)){        //keep turning left until center sensor detects line
-          //Serial.println("U-TURN");
+      drive_left(TURN_SPEED);
+      while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        
+        //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
           read_line(&line_data);
-          drive_left(TURN_SPEED);
-      } drive_stop(DEFAULT_SPEED);
-  }  */
+      } 
+  } 
   else{
       //Serial.println("DRIVE FORWARD");                                                   
       drive_forward(DEFAULT_SPEED, &line_data);
