@@ -21,7 +21,7 @@ void setup() {
   pinMode(R_Motor_2, OUTPUT);
 
   //encoder
-  //enc2.write(0);  //reset encoder to 0
+  enc2.write(0);  //reset encoder to 0
 
   //Initiate sensor
   PLAY_SOUND(calibrate_begin_sound, calibrate_begin_delay);
@@ -43,10 +43,9 @@ void loop() {
           read_line(&line_data);
       }        
   }
-  /*
-  else if((line_data&0b0000000000111) == line_data&0b0000000000111){    //if car is at intersectio or right turn
+  else if((line_data&0b0000000011111) == 0b0000000011111){    //if car is at intersectio or right turn
       //Serial.println("INTERSECTION");
-      inch_forward(DEFAULT_SPEED, 500);    
+      inch_forward(DEFAULT_SPEED, 160);    
       uint16_t inch_data;           //data 1 inch from intersection
       read_line(&inch_data);
 
@@ -64,13 +63,13 @@ void loop() {
       }
       else{
           inch_backward(DEFAULT_SPEED, 60);
-          while((line_data&0b0001100000000) != 0b0001100000000){        //keep turning right until center sensor detects line
+          drive_right(TURN_SPEED);
+          while((line_data&0b0001100000000) != 0b0001100000000  &&  (line_data&0b1110011111111) != 0b0000000000000){        //keep turning right until center sensor detects line
               //Serial.println("TURN RIGHT");
-              read_line(&line_data);
-              drive_right(TURN_SPEED);
-          } drive_stop(DEFAULT_SPEED);
+              read_line(&line_data);             
+          }
       }
-  }*/
+  }
   else if(!line_data){   //line_data == 0x0000       //U-turn
       drive_left(TURN_SPEED);
       while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        

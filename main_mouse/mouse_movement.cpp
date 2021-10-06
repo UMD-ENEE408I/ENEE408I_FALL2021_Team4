@@ -2,7 +2,7 @@
 #include "mouse_movement.h"
 
 //Encoder enc1(M1_ENC_A, M1_ENC_B); //left wheel
-//Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
+Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
 
 const float Kp = 2.75;    //proportional gain   current optimal value=2.75
 const float Ki = 0;       //integral gain       not needed
@@ -114,35 +114,35 @@ void drive_left(int speed){
     R_forward(speed);
 }
 
-void inch_forward(int speed, int duration){
-    L_forward(speed + 6);
-    R_forward(speed);
-    delay(duration);
-    drive_stop(speed);
-}
-
-void inch_backward(int speed, int duration){
-    L_backward(speed + 4);
-    R_backward(speed);
-    delay(duration);
-    drive_stop(speed);
-}
-
-//void inch_forward(int speed, int angle){
-//    enc2.write(0);
-//    while(enc2.read() < angle){
-//      Serial.println(enc2.read());
-//      L_forward(speed + 6);
-//      R_forward(speed);
-//    }
+//void inch_forward(int speed, int duration){
+//    L_forward(speed + 6);
+//    R_forward(speed);
+//    delay(duration);
 //    drive_stop(speed);
 //}
 //
-//void inch_backward(int speed, int angle){
-//    enc2.write(0);
-//    while(enc2.read() > -angle){
-//      L_backward(speed + 4);
-//      R_backward(speed);
-//    }
+//void inch_backward(int speed, int duration){
+//    L_backward(speed + 4);
+//    R_backward(speed);
+//    delay(duration);
 //    drive_stop(speed);
 //}
+
+void inch_forward(int speed, int angle){
+    enc2.write(0);
+    while(enc2.read() < angle){
+      Serial.println(enc2.read());
+      L_forward(speed + 6);
+      R_forward(speed);
+    }
+    drive_stop(speed);
+}
+
+void inch_backward(int speed, int angle){
+    enc2.write(0);
+    while(enc2.read() > -angle){
+      L_backward(speed + 4);
+      R_backward(speed);
+    }
+    drive_stop(speed);
+}
