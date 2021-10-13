@@ -44,12 +44,12 @@ void loop() {
           //Serial.println("TURN RIGHT");
           read_line(&line_data);             
       }
-  }
-  */
+  }*/
+  
   
 
   if((line_data&0b1111100000000) == 0b1111100000000){          //if car sees left turn 
-      inch_forward(DEFAULT_SPEED, 160);    
+      inch_forward(DEFAULT_SPEED, 60);    
       uint16_t inch_data;           //data 1 inch from intersection
       read_line(&inch_data);
 
@@ -64,40 +64,41 @@ void loop() {
       }
       else{
           drive_left(TURN_SPEED);
-          while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        
+          while((line_data&0b0000000110000) != 0b0000000110000  &&  (line_data&0b1111111001111)!=0){        
             //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
               read_line(&line_data);
           } 
       }           
   }
-  else if((line_data&0b0000000000111) == 0b0000000000111){    //if car is at intersection or right turn
+  else if((line_data&0b0000000011111) == 0b0000000011111){    //if car is at intersection or right turn
       //Serial.println("INTERSECTION");
-      inch_forward(DEFAULT_SPEED, 160);    
+      inch_forward(DEFAULT_SPEED, 90);    
       uint16_t inch_data;           //data 1 inch from intersection
       read_line(&inch_data);
 
-      inch_backward(DEFAULT_SPEED, 60);
-      drive_right(TURN_SPEED);
-      while((line_data&0b0001100000000) != 0b0001100000000  &&  (line_data&0b1110011111111) != 0b0000000000000){        //keep turning right until center sensor detects line
-          //Serial.println("TURN RIGHT");
-          read_line(&line_data);             
-      }
-      /*
+//      inch_backward(DEFAULT_SPEED, 60);
+//      drive_right(TURN_SPEED);
+//      while((line_data&0b0001100000000) != 0b0001100000000  &&  (line_data&0b1110011111111) != 0b0000000000000){        //keep turning right until center sensor detects line
+//          //Serial.println("TURN RIGHT");
+//          read_line(&line_data);             
+//      }
+      
       if(inch_data&0b0001111100000){
           drive_forward(DEFAULT_SPEED, &line_data);
       }
       else{
-          inch_backward(DEFAULT_SPEED, 60);
           drive_right(TURN_SPEED);
-          while((line_data&0b0001100000000) != 0b0001100000000  &&  (line_data&0b1110011111111) != 0b0000000000000){        //keep turning right until center sensor detects line
+          delay(100);
+          read_line(&line_data);
+          while((line_data&0b0000110000000) != 0b0000110000000  /*&&  (line_data&0b1111001111111)!=0*/){        //keep turning right until center sensor detects line
               //Serial.println("TURN RIGHT");
               read_line(&line_data);             
           }
-      }*/
+      }
   }
   else if(!line_data){   //line_data == 0x0000       //U-turn
       drive_left(TURN_SPEED);
-      while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        
+      while((line_data&0b0000000110000) != 0b0000000110000  &&  (line_data&0b1111111001111)!=0){        
         //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
           read_line(&line_data);
       } 
