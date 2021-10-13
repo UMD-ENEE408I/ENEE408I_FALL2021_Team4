@@ -5,7 +5,7 @@
 #include "template_functions.h"   //OPTIONAL. includes functions to print out binary
 
 #define DEFAULT_SPEED 34  //speed of the car
-#define TURN_SPEED    32
+#define TURN_SPEED    33
 
 void setup() {
   Serial.begin(115200);
@@ -34,17 +34,21 @@ void loop() {
 
   read_line(&line_data);
   printBinaryN(line_data, 13);
+  
+
+  /*
+  if((line_data&0b0000000000111) == 0b0000000000111){    //if car is at intersectio or right turn
+      //Serial.println("INTERSECTION");  
+      drive_right(TURN_SPEED);
+      while((line_data&0b0001100000000) != 0b0001100000000  &&  (line_data&0b1110011111111) != 0b0000000000000){        //keep turning right until center sensor detects line
+          //Serial.println("TURN RIGHT");
+          read_line(&line_data);             
+      }
+  }
+  */
+  
 
   if((line_data&0b1111100000000) == 0b1111100000000){          //if car sees left turn 
-      //inch_forward(DEFAULT_SPEED, 60); 
-      drive_left(TURN_SPEED);
-      while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        
-        //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
-          read_line(&line_data);
-      }        
-  }
-  else if((line_data&0b0000000011111) == 0b0000000011111){    //if car is at intersectio or right turn
-      //Serial.println("INTERSECTION");
       inch_forward(DEFAULT_SPEED, 160);    
       uint16_t inch_data;           //data 1 inch from intersection
       read_line(&inch_data);
@@ -58,7 +62,28 @@ void loop() {
               //DO NOTHING
           }
       }
-      else if(inch_data&0b0001111100000){
+      else{
+          drive_left(TURN_SPEED);
+          while((line_data&0b0000000011000) != 0b0000000011000  &&  (line_data&0b1111111100111) != 0b0000000000000){        
+            //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
+              read_line(&line_data);
+          } 
+      }           
+  }
+  else if((line_data&0b0000000000111) == 0b0000000000111){    //if car is at intersection or right turn
+      //Serial.println("INTERSECTION");
+      inch_forward(DEFAULT_SPEED, 160);    
+      uint16_t inch_data;           //data 1 inch from intersection
+      read_line(&inch_data);
+
+      inch_backward(DEFAULT_SPEED, 60);
+      drive_right(TURN_SPEED);
+      while((line_data&0b0001100000000) != 0b0001100000000  &&  (line_data&0b1110011111111) != 0b0000000000000){        //keep turning right until center sensor detects line
+          //Serial.println("TURN RIGHT");
+          read_line(&line_data);             
+      }
+      /*
+      if(inch_data&0b0001111100000){
           drive_forward(DEFAULT_SPEED, &line_data);
       }
       else{
@@ -68,7 +93,7 @@ void loop() {
               //Serial.println("TURN RIGHT");
               read_line(&line_data);             
           }
-      }
+      }*/
   }
   else if(!line_data){   //line_data == 0x0000       //U-turn
       drive_left(TURN_SPEED);
@@ -76,7 +101,7 @@ void loop() {
         //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
           read_line(&line_data);
       } 
-  } 
+  }
   else{
       //Serial.println("DRIVE FORWARD");                                                   
       drive_forward(DEFAULT_SPEED, &line_data);

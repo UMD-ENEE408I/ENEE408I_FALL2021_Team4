@@ -1,6 +1,7 @@
 #ifndef MOUSE_MOVEMENT
 #define MOUSE_MOVEMENT
 
+#define ENCODER_DO_NOT_USE_INTERRUPTS
 #include <Encoder.h>
 //Pin numbers for encoder
 //#define M1_ENC_A 6
