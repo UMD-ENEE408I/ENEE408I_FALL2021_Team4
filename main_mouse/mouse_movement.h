@@ -1,6 +1,7 @@
 #ifndef MOUSE_MOVEMENT
 #define MOUSE_MOVEMENT
 
+#define ENCODER_DO_NOT_USE_INTERRUPTS
 #include <Encoder.h>
 //Pin numbers for encoder
 //#define M1_ENC_A 6
@@ -9,7 +10,7 @@
 #define M2_ENC_B 8
 
 //extern Encoder enc1;
-//extern Encoder enc2;
+extern Encoder enc2;
 
 //Pin numbers for H-bridge motor control
 #define L_Motor_1 2
@@ -35,10 +36,10 @@ void drive_stop(int speed);
 void drive_right(int speed);
 void drive_left(int speed);
 
-void inch_forward(int speed, int duration);
-void inch_backward(int speed, int duration);
+//void inch_forward(int speed, int duration);
+//void inch_backward(int speed, int duration);
 
-//void inch_forward(int speed, int angle);
-//void inch_backward(int speed, int angle);
+void inch_forward(int speed, int angle);
+void inch_backward(int speed, int angle);
 
 #endif

@@ -2,13 +2,15 @@
 #include "mouse_movement.h"
 
 //Encoder enc1(M1_ENC_A, M1_ENC_B); //left wheel
-//Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
+Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
 
 const float Kp = 2.75;    //proportional gain   current optimal value=2.75
 const float Ki = 0;       //integral gain       not needed
 const float Kd = 0.8;     //derivative gain     current optimal value = 0.8
 const int   left_wheel_coeff = 3;   //left wheel speed is different from right wheel. increase this value to increase
                                     //the default speed of the left wheel
+const int   right_wheel_coeff = 2;
+ 
 int prev_error;
 
 /*  NOTES ~~Ignore This~~Different variation of how the camera define when to turn
@@ -106,43 +108,48 @@ void drive_stop(int speed){
 
 void drive_right(int speed){
     L_forward(speed + left_wheel_coeff);
-    R_backward(speed);
+    R_backward(speed + right_wheel_coeff);
 }
 
 void drive_left(int speed){
     L_backward(speed + left_wheel_coeff);
-    R_forward(speed);
+    R_forward(speed + right_wheel_coeff);
 }
 
-void inch_forward(int speed, int duration){
-    L_forward(speed + 6);
-    R_forward(speed);
-    delay(duration);
-    drive_stop(speed);
-}
-
-void inch_backward(int speed, int duration){
-    L_backward(speed + 4);
-    R_backward(speed);
-    delay(duration);
-    drive_stop(speed);
-}
-
-//void inch_forward(int speed, int angle){
-//    enc2.write(0);
-//    while(enc2.read() < angle){
-//      Serial.println(enc2.read());
-//      L_forward(speed + 6);
-//      R_forward(speed);
-//    }
+//void inch_forward(int speed, int duration){
+//    L_forward(speed + 6);
+//    R_forward(speed);
+//    delay(duration);
 //    drive_stop(speed);
 //}
 //
-//void inch_backward(int speed, int angle){
-//    enc2.write(0);
-//    while(enc2.read() > -angle){
-//      L_backward(speed + 4);
-//      R_backward(speed);
-//    }
+//void inch_backward(int speed, int duration){
+//    L_backward(speed + 4);
+//    R_backward(speed);
+//    delay(duration);
 //    drive_stop(speed);
 //}
+
+void inch_forward(int speed, int angle){
+    enc2.write(0);
+    
+    L_forward(speed + 6);
+    R_forward(speed+3);
+    
+    while(enc2.read() < angle){
+        //do nothing. the wheel's already rotating
+    }
+    drive_stop(speed);
+}
+
+void inch_backward(int speed, int angle){
+    enc2.write(0);
+    
+    L_backward(speed + 4);
+    R_backward(speed);
+    
+    while(enc2.read() > -angle){
+        //do nothing. the wheel's already rotating
+    }
+    drive_stop(speed);
+}
