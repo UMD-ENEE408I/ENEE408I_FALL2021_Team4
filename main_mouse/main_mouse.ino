@@ -64,9 +64,12 @@ void loop() {
       }
       else{
           drive_left(TURN_SPEED);
-          while((line_data&0b0000000110000) != 0b0000000110000  &&  (line_data&0b1111111001111)!=0){        
+          while(1){        
             //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
               read_line(&line_data);
+
+              if((line_data&0b0000000110000) != 0b0000000110000  &&  (line_data&0b1111111001111)!=0)
+                break;
           } 
       }           
   }
@@ -75,32 +78,32 @@ void loop() {
       inch_forward(DEFAULT_SPEED, 90);    
       uint16_t inch_data;           //data 1 inch from intersection
       read_line(&inch_data);
-
-//      inch_backward(DEFAULT_SPEED, 60);
-//      drive_right(TURN_SPEED);
-//      while((line_data&0b0001100000000) != 0b0001100000000  &&  (line_data&0b1110011111111) != 0b0000000000000){        //keep turning right until center sensor detects line
-//          //Serial.println("TURN RIGHT");
-//          read_line(&line_data);             
-//      }
       
       if(inch_data&0b0001111100000){
           drive_forward(DEFAULT_SPEED, &line_data);
       }
       else{
           drive_right(TURN_SPEED);
-          delay(100);
           read_line(&line_data);
-          while((line_data&0b0000110000000) != 0b0000110000000  /*&&  (line_data&0b1111001111111)!=0*/){        //keep turning right until center sensor detects line
-              //Serial.println("TURN RIGHT");
-              read_line(&line_data);             
+          //tone(BUZZ_PIN, NOTE_A5, 500);
+          Serial.println("DRIVE RIGHT");   
+          printBinaryN(line_data, 13);
+          while(1){        //keep turning right until center sensor detects line
+              read_line(&line_data);       
+
+              if((line_data&0b0000110000000) != 0b0000110000000 &&  (line_data&0b1111001111111)!=0)
+                break;
           }
       }
   }
   else if(!line_data){   //line_data == 0x0000       //U-turn
       drive_left(TURN_SPEED);
-      while((line_data&0b0000000110000) != 0b0000000110000  &&  (line_data&0b1111111001111)!=0){        
+      while(1){        
         //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
           read_line(&line_data);
+          
+          if((line_data&0b0000000110000) != 0b0000000110000  &&  (line_data&0b1111111001111)!=0)
+                break;
       } 
   }
   else{
