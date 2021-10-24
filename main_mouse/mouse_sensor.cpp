@@ -6,7 +6,6 @@ Adafruit_MCP3008 adc2;
 
 //value below threshold are considered white lines
 int adc_threshhold[13];
-char str_buf[128];
 
 void read_line(uint16_t *line_data){
     int adc_buf[13];

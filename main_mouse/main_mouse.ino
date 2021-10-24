@@ -5,7 +5,8 @@
 #include "template_functions.h"   //OPTIONAL. includes functions to print out binary
 
 #define DEFAULT_SPEED 34  //speed of the car
-#define TURN_SPEED    33
+#define TURN_SPEED    40
+char str_buf[128];
 
 void setup() {
   Serial.begin(115200);
@@ -21,6 +22,7 @@ void setup() {
   pinMode(R_Motor_2, OUTPUT);
 
   //encoder
+  enc1.write(0);  //reset encoder to 0
   enc2.write(0);  //reset encoder to 0
 
   //Initiate sensor
@@ -33,20 +35,13 @@ void loop() {
   uint16_t line_data;
 
   read_line(&line_data);
-  printBinaryN(line_data, 13);
-  
+  //printBinaryN(line_data, 13);
 
-  /*
-  if((line_data&0b0000000000111) == 0b0000000000111){    //if car is at intersectio or right turn
-      //Serial.println("INTERSECTION");  
-      drive_right(TURN_SPEED);
-      while((line_data&0b0001100000000) != 0b0001100000000  &&  (line_data&0b1110011111111) != 0b0000000000000){        //keep turning right until center sensor detects line
-          //Serial.println("TURN RIGHT");
-          read_line(&line_data);             
-      }
-  }*/
-  
-  
+  //TEST CODE
+  //drive_forward(DEFAULT_SPEED, &line_data);
+  //turn_right(TURN_SPEED);
+  //turn_left(TURN_SPEED);
+  //delay(5000);
 
   if((line_data&0b1111100000000) == 0b1111100000000){          //if car sees left turn 
       inch_forward(DEFAULT_SPEED, 60);    
@@ -56,6 +51,7 @@ void loop() {
       if((inch_data&0b1111111111111) == 0b1111111111111){         //FOUND THE END
           drive_stop(DEFAULT_SPEED);
           read_line(&line_data);
+          
           while((line_data&0b1111111111111) == 0b1111111111111){
               //Serial.println("END GOAL");
               read_line(&line_data);
