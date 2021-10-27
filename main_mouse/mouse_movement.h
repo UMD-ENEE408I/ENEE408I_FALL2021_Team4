@@ -18,6 +18,7 @@ extern Encoder enc2;
 #define R_Motor_1 5
 #define R_Motor_2 4
 
+int speed_pid(long unsigned prev_time, int prev_angle);
 
 int center_error(uint16_t *line_data);  //calculates the error difference and return the error correction value
 int encoder_error();

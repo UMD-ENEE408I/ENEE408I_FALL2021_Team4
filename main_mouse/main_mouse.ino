@@ -4,8 +4,8 @@
 
 #include "template_functions.h"   //OPTIONAL. includes functions to print out binary
 
-#define DEFAULT_SPEED 34  //speed of the car
-#define TURN_SPEED    40
+#define DEFAULT_SPEED 32  //speed of the car
+#define TURN_SPEED    36
 char str_buf[128];
 
 void setup() {
@@ -40,9 +40,10 @@ void loop() {
   //TEST CODE
   //drive_forward(DEFAULT_SPEED, &line_data);
   //turn_right(TURN_SPEED);
-  //turn_left(TURN_SPEED);
+  turn_left(TURN_SPEED);
   //delay(5000);
 
+/*
   if((line_data&0b1111100000000) == 0b1111100000000){          //if car sees left turn 
       inch_forward(DEFAULT_SPEED, 60);    
       uint16_t inch_data;           //data 1 inch from intersection
@@ -59,18 +60,10 @@ void loop() {
           }
       }
       else{
-          drive_left(TURN_SPEED);
-          while(1){        
-            //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
-              read_line(&line_data);
-
-              if((line_data&0b0000000110000) != 0b0000000110000  &&  (line_data&0b1111111001111)!=0)
-                break;
-          } 
+          turn_left(TURN_SPEED);
       }           
   }
   else if((line_data&0b0000000011111) == 0b0000000011111){    //if car is at intersection or right turn
-      //Serial.println("INTERSECTION");
       inch_forward(DEFAULT_SPEED, 90);    
       uint16_t inch_data;           //data 1 inch from intersection
       read_line(&inch_data);
@@ -79,33 +72,17 @@ void loop() {
           drive_forward(DEFAULT_SPEED, &line_data);
       }
       else{
-          drive_right(TURN_SPEED);
-          read_line(&line_data);
-          //tone(BUZZ_PIN, NOTE_A5, 500);
-          Serial.println("DRIVE RIGHT");   
-          printBinaryN(line_data, 13);
-          while(1){        //keep turning right until center sensor detects line
-              read_line(&line_data);       
-
-              if((line_data&0b0000110000000) != 0b0000110000000 &&  (line_data&0b1111001111111)!=0)
-                break;
-          }
+          turn_right(TURN_SPEED);
       }
   }
   else if(!line_data){   //line_data == 0x0000       //U-turn
-      drive_left(TURN_SPEED);
-      while(1){        
-        //keep turning left until center sensor detects line //Serial.println("TURN LEFT");
-          read_line(&line_data);
-          
-          if((line_data&0b0000000110000) != 0b0000000110000  &&  (line_data&0b1111111001111)!=0)
-                break;
-      } 
+      turn_left(TURN_SPEED);
   }
   else{
       //Serial.println("DRIVE FORWARD");                                                   
       drive_forward(DEFAULT_SPEED, &line_data);
   }
+  */
   
 }
 

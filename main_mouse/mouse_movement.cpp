@@ -5,9 +5,13 @@
 Encoder enc1(M1_ENC_A, M1_ENC_B); //left wheel
 Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
 
-const double Kp_center = 3;    //proportional gain   current optimal value=2.75
-const double Ki_center = 0;       //integral gain       not needed
-const double Kd_center = 0.8;     //derivative gain     current optimal value = 0.8
+const double Kp_speed = 0;   
+const double Kd_speed = 0; 
+int prev_error_speed;
+
+const double Kp_center = 2.7;  //3
+const double Ki_center = 0;
+const double Kd_center = 0.8; 
 int prev_error_center;
 
 const double Kp_enc = 0.2; 
@@ -17,7 +21,7 @@ int prev_error_enc;
 
 const double Kp_turn = 3; 
 const double Ki_turn = 0;    
-const double Kd_turn = 1.5;   
+const double Kd_turn = 1.4;   //1.2
 int prev_error_turn;
  
 
@@ -36,6 +40,28 @@ int prev_error_turn;
   Tilted Left         = 13'B0000100000000
   Tilted Right        = 13'B0000000100000
 */
+
+int speed_pid(long unsigned  prev_time, long unsigned prev_angle){  //regulate speed for right wheel.
+   /* long unsigned elapse_time = millis() - prev_time;
+    long unsigned    rotation = abs(enc2.read()) - prev_angle;
+
+    int ms_per_mm = (long)elapse_time / rotation;
+    
+    int error = 10 - ms_per_mm;  //desired speed value is 10 ms/mm
+    int P, D;
+
+    //Serial.println(ms_per_mm);
+    
+    P = error;
+    D = error - prev_error_center;
+    prev_error_speed = error;
+    
+    int error_correction = int(P*Kp_speed + D*Kd_speed); 
+
+    return error_correction;*/
+    return 0;
+}
+
 int center_error(uint16_t *line_data){
     int L_error, R_error;
     L_error = R_error = 0;
@@ -81,8 +107,8 @@ int turn_error(){
     prev_error_enc = error;
     int error_correction = int(P*Kp_turn + I*Ki_turn + D*Kd_turn);
 
-    if(error_correction > 10)
-      error_correction = 10;
+    if(error_correction > 5)
+      error_correction = 5;
 
     return error_correction;
 }
@@ -153,10 +179,15 @@ void drive_stop(int speed){
 
 void drive_right(int speed){
     int turn_correction = turn_error();
+
+    /*//BROKE
+    long unsigned prev_time  = millis();
+    long unsigned prev_angle = abs(enc2.read());
+    int speed_calibrate = speed_pid(prev_time, prev_angle); //Makes sure wheel turns at constant speed
+   */
     
     L_forward(speed - turn_correction);
-    R_backward(speed); 
-    
+    R_backward(speed);  
 }
 
 void drive_left(int speed){
@@ -168,7 +199,8 @@ void drive_left(int speed){
 
 void turn_right(int speed){
     uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
-    while(1){        
+    
+    while(1){       
         /*char buf[50];
         sprintf(buf, "L: %i, R: %i\n",enc1.read(),enc2.read());
         Serial.print(buf);
@@ -186,10 +218,10 @@ void turn_right(int speed){
 void turn_left(int speed){
     uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
     while(1){        
-        /*char buf[50];
+        char buf[50];
         sprintf(buf, "L: %i, R: %i\n",enc1.read(),enc2.read());
         Serial.print(buf);  
-        */
+        
         drive_left(speed);
         read_line(&local_line_data);
         
