@@ -12,6 +12,12 @@
 extern Encoder enc1;
 extern Encoder enc2;
 
+struct encoder
+  {
+       int16_t encoder1;
+       int16_t encoder2;
+  };
+
 //Pin numbers for H-bridge motor control
 #define L_Motor_1 2
 #define L_Motor_2 3
