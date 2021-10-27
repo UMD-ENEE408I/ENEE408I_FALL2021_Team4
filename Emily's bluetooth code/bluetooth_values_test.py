@@ -12,18 +12,18 @@ async def run(address):
         right_value = -20
 
         t_start = time.time()
-        for i in range(40):
-            await client.write_gatt_char(MOTOR_CHAR_UUID, struct.pack('hh', left_value, right_value))
+        while(1):
+            #await client.write_gatt_char(MOTOR_CHAR_UUID, struct.pack('hh', left_value, right_value))
 
             value = await client.read_gatt_char(MOTOR_CHAR_UUID)
             (left_value, right_value) = struct.unpack('hh', value)
             print("value: {} {}".format(left_value, right_value))
 
-            left_value += 1
-            right_value += 1
+            #left_value += 1
+            #right_value += 1
         t_end = time.time()
 
-        print('{} Hz'.format(40*2 / (t_end-t_start)))
+        #print('{} Hz'.format(40*2 / (t_end-t_start)))
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(run(address))
