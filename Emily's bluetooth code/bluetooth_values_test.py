@@ -3,7 +3,8 @@ from bleak import BleakClient
 import struct
 import time
 
-address = "C4:D9:AA:CF:80:F5"
+address = "B0:73:A1:FA:50:C4" 
+#C4:D9:AA:CF:80:F5"
 MOTOR_CHAR_UUID = "080a43de-6b5e-4004-9c9b-4ac9f67b99be"
 
 async def run(address):
