@@ -35,13 +35,24 @@ void loop() {
   uint16_t line_data;
 
   read_line(&line_data);
-  //printBinaryN(line_data, 13);
+  printBinaryN(line_data, 13);
 
   //TEST CODE
   //drive_forward(DEFAULT_SPEED, &line_data);
   //turn_right(TURN_SPEED);
-  turn_left(TURN_SPEED);
-  //delay(5000);
+  //turn_left(TURN_SPEED);
+  //inch_backward(DEFAULT_SPEED+10, 180);
+  //delay(3000);
+
+  if((line_data&0b1111100000000) == 0b1111100000000){
+          turn_left(TURN_SPEED);  
+      }
+      else if((line_data&0b0000000011111) == 0b0000000011111){
+          turn_right(TURN_SPEED);
+      }
+      else{
+          drive_forward(DEFAULT_SPEED, &line_data);
+      }
 
 /*
   if((line_data&0b1111100000000) == 0b1111100000000){          //if car sees left turn 

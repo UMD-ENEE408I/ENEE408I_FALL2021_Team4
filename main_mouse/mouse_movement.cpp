@@ -21,7 +21,7 @@ int prev_error_enc;
 
 const double Kp_turn = 3; 
 const double Ki_turn = 0;    
-const double Kd_turn = 1.4;   //1.2
+const double Kd_turn = 2;   //1.2
 int prev_error_turn;
  
 
@@ -199,13 +199,21 @@ void drive_left(int speed){
 
 void turn_right(int speed){
     uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
+    int slowdown;
     
     while(1){       
         /*char buf[50];
         sprintf(buf, "L: %i, R: %i\n",enc1.read(),enc2.read());
         Serial.print(buf);
         */
-        drive_right(speed);    
+        
+        slowdown = 0;
+        for(int i=0; i<6; i++){
+          if((0x0000<<i) & local_line_data)
+            slowdown=i;
+        }
+        
+        drive_right(speed - (slowdown*SLOW_COEFF));  
         read_line(&local_line_data);
         
         if((local_line_data&0b0000001000000) &&  
@@ -217,14 +225,24 @@ void turn_right(int speed){
 
 void turn_left(int speed){
     uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
+    int slowdown;
+
+    read_line(&local_line_data);
     while(1){        
-        char buf[50];
+        /*char buf[50];
         sprintf(buf, "L: %i, R: %i\n",enc1.read(),enc2.read());
         Serial.print(buf);  
+        */
+        slowdown = 0;
+        for(int i=0; i<6; i++){
+          if((0x1000>>i) & local_line_data)
+            slowdown=i;
+        }
         
-        drive_left(speed);
-        read_line(&local_line_data);
+        drive_left(speed - (slowdown*SLOW_COEFF));
+        read_line(&local_line_data);    
         
+          
         if((local_line_data&0b0000001000000) &&  
            (local_line_data&0b1111100011111) == 0   )
           break;
@@ -234,24 +252,38 @@ void turn_left(int speed){
 
 void inch_forward(int speed, int angle){
     enc2.write(0);
+
+    int enc_correction = encoder_error();
     
-    L_forward(speed + 6);
-    R_forward(speed+3);
+    int L_speed = speed - enc_correction;
+    int R_speed = speed;
     
-    while(enc2.read() < angle){
-        //do nothing. the wheel's already rotating
+    L_forward(L_speed);
+    R_forward(R_speed);
+    
+    while(enc2.read() > -angle){
+        enc_correction = encoder_error();
+        L_speed = speed + enc_correction;
+        L_forward(L_speed);
     }
     drive_stop(speed);
 }
 
 void inch_backward(int speed, int angle){
     enc2.write(0);
+
+    int enc_correction = encoder_error();
     
-    L_backward(speed);
-    R_backward(speed);
+    int L_speed = speed - enc_correction;
+    int R_speed = speed;
+    
+    L_backward(L_speed);
+    R_backward(R_speed);
     
     while(enc2.read() > -angle){
-        //do nothing. the wheel's already rotating
+        enc_correction = encoder_error();
+        L_speed = speed + enc_correction;
+        L_backward(L_speed);
     }
     drive_stop(speed);
 }
