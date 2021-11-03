@@ -1,3 +1,4 @@
+
 #include "mouse_sensor.h"         //includes functions for line sensor
 #include "mouse_movement.h"       //includes function for mouse movement
 #include "mouse_sound.h"          //includes all audio functions and tones
@@ -45,10 +46,14 @@ void loop() {
   //delay(3000);
 
   if((line_data&0b1111100000000) == 0b1111100000000){
+          inch_forward(DEFAULT_SPEED, 90);
           turn_left(TURN_SPEED);  
+          delay(100);
       }
       else if((line_data&0b0000000011111) == 0b0000000011111){
+          inch_forward(DEFAULT_SPEED, 90);
           turn_right(TURN_SPEED);
+          delay(100);
       }
       else{
           drive_forward(DEFAULT_SPEED, &line_data);

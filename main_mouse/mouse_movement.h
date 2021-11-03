@@ -20,8 +20,6 @@ extern Encoder enc2;
 
 #define SLOW_COEFF 1.5
 
-int speed_pid(long unsigned prev_time, int prev_angle);
-
 int center_error(uint16_t *line_data);  //calculates the error difference and return the error correction value
 int encoder_error();
 

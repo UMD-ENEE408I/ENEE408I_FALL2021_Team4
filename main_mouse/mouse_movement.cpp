@@ -5,23 +5,20 @@
 Encoder enc1(M1_ENC_A, M1_ENC_B); //left wheel
 Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
 
-const double Kp_speed = 0;   
-const double Kd_speed = 0; 
-int prev_error_speed;
 
 const double Kp_center = 2.7;  //3
 const double Ki_center = 0;
 const double Kd_center = 0.8; 
 int prev_error_center;
 
-const double Kp_enc = 0.2; 
+const double Kp_enc = 2; //.2
 const double Ki_enc = 0;   
-const double Kd_enc = 0.2; 
+const double Kd_enc = 0.4;  //.2
 int prev_error_enc;
 
 const double Kp_turn = 3; 
 const double Ki_turn = 0;    
-const double Kd_turn = 2;   //1.2
+const double Kd_turn = 1.6;   //1.2
 int prev_error_turn;
  
 
@@ -41,26 +38,6 @@ int prev_error_turn;
   Tilted Right        = 13'B0000000100000
 */
 
-int speed_pid(long unsigned  prev_time, long unsigned prev_angle){  //regulate speed for right wheel.
-   /* long unsigned elapse_time = millis() - prev_time;
-    long unsigned    rotation = abs(enc2.read()) - prev_angle;
-
-    int ms_per_mm = (long)elapse_time / rotation;
-    
-    int error = 10 - ms_per_mm;  //desired speed value is 10 ms/mm
-    int P, D;
-
-    //Serial.println(ms_per_mm);
-    
-    P = error;
-    D = error - prev_error_center;
-    prev_error_speed = error;
-    
-    int error_correction = int(P*Kp_speed + D*Kd_speed); 
-
-    return error_correction;*/
-    return 0;
-}
 
 int center_error(uint16_t *line_data){
     int L_error, R_error;
@@ -143,7 +120,7 @@ void R_stop(){
     analogWrite(R_Motor_2, 0);
 }
 
-void drive_forward(int speed, uint16_t *line_data){
+void drive_forward(int speed, uint16_t *line_data){   
     int center_correction = center_error(line_data);
     int enc_correction = encoder_error();
     
@@ -200,6 +177,12 @@ void drive_left(int speed){
 void turn_right(int speed){
     uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
     int slowdown;
+
+    enc1.write(0);
+    enc2.write(0);
+
+    drive_right(speed);
+    delay(100); 
     
     while(1){       
         /*char buf[50];
@@ -221,11 +204,20 @@ void turn_right(int speed){
           break;
     }
     drive_stop(0);
+
+    enc1.write(0);
+    enc2.write(0);
 }
 
 void turn_left(int speed){
     uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
     int slowdown;
+
+    enc1.write(0);
+    enc2.write(0);
+
+    drive_left(speed);
+    delay(100);
 
     read_line(&local_line_data);
     while(1){        
@@ -248,9 +240,13 @@ void turn_left(int speed){
           break;
     }
     drive_stop(0);
+
+    enc1.write(0);
+    enc2.write(0);
 }
 
 void inch_forward(int speed, int angle){
+    enc1.write(0);
     enc2.write(0);
 
     int enc_correction = encoder_error();
@@ -261,7 +257,7 @@ void inch_forward(int speed, int angle){
     L_forward(L_speed);
     R_forward(R_speed);
     
-    while(enc2.read() > -angle){
+    while(enc2.read() < angle){
         enc_correction = encoder_error();
         L_speed = speed + enc_correction;
         L_forward(L_speed);
@@ -270,6 +266,7 @@ void inch_forward(int speed, int angle){
 }
 
 void inch_backward(int speed, int angle){
+    enc1.write(0);
     enc2.write(0);
 
     int enc_correction = encoder_error();
