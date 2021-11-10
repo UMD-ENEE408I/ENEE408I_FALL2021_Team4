@@ -56,7 +56,19 @@ def create_node_from_mouse(mouse_number):
   #  else:
  #       curr.right = make_intersection(new_intersection(1), new_intersection(2), new_intersection(3), distance)
 
-
+def return_to_alive(node, mouse_number):
+    if node.dead == False:
+        return
+    else:
+        if node == node.prev.left:
+            #turn right and drive to next node
+            return_to_alive(node.prev, mouse_number)
+        elif node == node.prev.straight:
+            #drive straight to next node
+            return_to_alive(node.prev, mouse_number)
+        else:
+            #turn left and drive to next node
+            return_to_alive(node.prev, mouse_number)
 
 def check_children(curr):
     if curr.turns(1)==1 & curr.left.dead == False:
@@ -68,7 +80,7 @@ def check_children(curr):
         check_children(curr.left)
         if curr.finished == True:
             curr.prev.finished = True
-            return
+            return 
     if curr.turns(2)==1 & curr.straight.dead == False:
         #drive straight to next node
         check_children(curr.straight)
@@ -83,6 +95,9 @@ def check_children(curr):
             curr.prev.finished = True
             return
     set_node_dead(curr)
+    #U-Turn mouse and return to previous node
+
+
 
 
 
