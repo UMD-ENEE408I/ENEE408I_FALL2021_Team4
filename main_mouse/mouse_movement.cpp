@@ -2,13 +2,15 @@
 #include "mouse_movement.h"
 #include "mouse_sensor.h"
 
+#define SLOW_COEFF 1.5
+
 Encoder enc1(M1_ENC_A, M1_ENC_B); //left wheel
 Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
 
 
-const double Kp_center = 2.7;  //3
+const double Kp_center = 4;  //3
 const double Ki_center = 0;
-const double Kd_center = 0.8; 
+const double Kd_center = 3;  //0.8
 int prev_error_center;
 
 const double Kp_enc = 2; //.2
@@ -157,14 +159,11 @@ void drive_stop(int speed){
 void drive_right(int speed){
     int turn_correction = turn_error();
 
-    /*//BROKE
-    long unsigned prev_time  = millis();
-    long unsigned prev_angle = abs(enc2.read());
-    int speed_calibrate = speed_pid(prev_time, prev_angle); //Makes sure wheel turns at constant speed
-   */
-    
-    L_forward(speed - turn_correction);
-    R_backward(speed);  
+//    L_forward(speed - turn_correction);
+//    R_backward(speed);  
+
+      L_forward(speed);
+      R_backward(speed + turn_correction);  
 }
 
 void drive_left(int speed){
@@ -174,15 +173,15 @@ void drive_left(int speed){
     R_forward(speed); 
 }
 
-void turn_right(int speed){
-    uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
+void turn_right(int speed, uint16_t *line_data){
+    //uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
     int slowdown;
 
     enc1.write(0);
     enc2.write(0);
 
     drive_right(speed);
-    delay(100); 
+    delay(150); 
     
     while(1){       
         /*char buf[50];
@@ -192,15 +191,15 @@ void turn_right(int speed){
         
         slowdown = 0;
         for(int i=0; i<6; i++){
-          if((0x0000<<i) & local_line_data)
+          if((0x0001<<i) & *line_data)
             slowdown=i;
         }
         
         drive_right(speed - (slowdown*SLOW_COEFF));  
-        read_line(&local_line_data);
+        //read_line(&local_line_data);
         
-        if((local_line_data&0b0000001000000) &&  
-           (local_line_data&0b1111100011111) == 0   )
+        if((*line_data&0b0000001000000) &&  
+           (*line_data&0b1111100011111) == 0   )
           break;
     }
     drive_stop(0);
@@ -209,7 +208,7 @@ void turn_right(int speed){
     enc2.write(0);
 }
 
-void turn_left(int speed){
+void turn_left(int speed, uint16_t *line_data){
     uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
     int slowdown;
 
@@ -217,26 +216,22 @@ void turn_left(int speed){
     enc2.write(0);
 
     drive_left(speed);
-    delay(100);
+    delay(150);
 
-    read_line(&local_line_data);
+    //read_line(&local_line_data);
     while(1){        
-        /*char buf[50];
-        sprintf(buf, "L: %i, R: %i\n",enc1.read(),enc2.read());
-        Serial.print(buf);  
-        */
         slowdown = 0;
         for(int i=0; i<6; i++){
-          if((0x1000>>i) & local_line_data)
+          if((0x1000>>i) & *line_data)
             slowdown=i;
         }
         
         drive_left(speed - (slowdown*SLOW_COEFF));
-        read_line(&local_line_data);    
+        //read_line(&local_line_data);    
         
           
-        if((local_line_data&0b0000001000000) &&  
-           (local_line_data&0b1111100011111) == 0   )
+        if((*line_data&0b0000001000000) &&  
+           (*line_data&0b1111100011111) == 0   )
           break;
     }
     drive_stop(0);
@@ -263,6 +258,9 @@ void inch_forward(int speed, int angle){
         L_forward(L_speed);
     }
     drive_stop(speed);
+
+    enc1.write(0);
+    enc2.write(0);
 }
 
 void inch_backward(int speed, int angle){
@@ -283,4 +281,7 @@ void inch_backward(int speed, int angle){
         L_backward(L_speed);
     }
     drive_stop(speed);
+
+    enc1.write(0);
+    enc2.write(0);
 }

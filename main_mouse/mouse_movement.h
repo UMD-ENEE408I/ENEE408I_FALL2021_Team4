@@ -3,7 +3,7 @@
 
 //#define ENCODER_DO_NOT_USE_INTERRUPTS
 #include <Encoder.h>
-//Pin numbers for encoder
+//Pin numbers for encoder TIN
 #define M1_ENC_A 6
 #define M1_ENC_B 7
 #define M2_ENC_A 9
@@ -24,8 +24,6 @@ struct encoder
 #define R_Motor_1 5
 #define R_Motor_2 4
 
-#define SLOW_COEFF 1.5
-
 int center_error(uint16_t *line_data);  //calculates the error difference and return the error correction value
 int encoder_error();
 
@@ -45,8 +43,8 @@ void drive_stop(int speed);
 void drive_right(int speed);  //turn and doesnt stop
 void drive_left(int speed);
 
-void turn_right(int speed);   //turn and stop when it hits line
-void turn_left(int speed);
+void turn_right(int speed, uint16_t *line_data);   //turn and stop when it hits line
+void turn_left(int speed, uint16_t *line_data);
 //void inch_forward(int speed, int duration);
 //void inch_backward(int speed, int duration);
 

@@ -6,7 +6,7 @@
 #define ADC_1_CS A3
 #define ADC_2_CS A2
 
-#define ADC_ERROR_MARGIN 55  // threshold = white line value + error margin
+#define ADC_ERROR_MARGIN 60  // threshold = white line value + error margin
 
 extern Adafruit_MCP3008 adc1;
 extern Adafruit_MCP3008 adc2;
