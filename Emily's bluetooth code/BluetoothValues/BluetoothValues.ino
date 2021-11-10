@@ -9,6 +9,8 @@ const unsigned int M2_ENC_B = 9;
 Encoder enc1(M1_ENC_A, M1_ENC_B);
 Encoder enc2(M2_ENC_B, M2_ENC_A);
 
+int intersection = 15;
+
 struct encoder
   {
        int16_t encoder1;
@@ -45,8 +47,8 @@ void setup() {
 
   // assign event handlers for characteristic
   //what does this do?
-  //motorCharacteristic.setEventHandler(BLEWritten, motorCharacteristicWritten);
-  
+  motorCharacteristic.setEventHandler(BLEWritten, motorCharacteristicWritten);
+  motorCharacteristic.setValue(0);
 
   BLE.advertise();
   Serial.println("Waiting for connection");
@@ -56,13 +58,14 @@ void loop() {
 
 
 
-  E.encoder1 = enc1.read();
+  //E.encoder1 = enc1.read();
   E.encoder2 = enc2.read(); 
   //motorCharacteristic.setValue(E.encoder1); //set the default value
-  motorCharacteristic.writeValue(((int32_t) E.encoder1 << 16) |  ((int32_t) E.encoder2 & 0x0000ffff));//E, sizeof(E));//(
+  motorCharacteristic.writeValue(((int32_t) intersection << 16) |  ((int32_t) E.encoder2 & 0x0000ffff));//E, sizeof(E));//(
   BLE.poll();
   //motorCharacteristic.setValue(E.encoder1);
   //BLE.poll();
+  //motorCharacteristicWritten();
 
 }
 
@@ -78,11 +81,11 @@ void blePeripheralDisconnectHandler(BLEDevice central) {
 
 void motorCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {
   Serial.print("motorCharacteristicWritten: ");
-  unsigned long v = motorCharacteristic.value();
-  //Serial.print(v);
-  //short left = (short)((v>>0) & 0x0000FFFF); // Unpack 16 bit signed value (assume short is 16 bit)
-  //short right = (short)((v>>16) & 0x0000FFFF); // Unpack 16 bit signed value
-  //Serial.print(left);
-  //Serial.print(" ");
-  //Serial.println(right);
+  unsigned int v = motorCharacteristic.value();
+  Serial.println(v);
+//  short left = (short)((v>>0) & 0x0000FFFF); // Unpack 16 bit signed value (assume short is 16 bit)
+//  short right = (short)((v>>16) & 0x0000FFFF); // Unpack 16 bit signed value
+//  Serial.print(left);
+//  Serial.print(" ");
+//  Serial.println(right);
 }
