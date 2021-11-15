@@ -2,7 +2,6 @@ import logging
 import asyncio
 import platform
 import ast
-import enum
 
 from bleak import BleakClient
 from bleak import BleakScanner
@@ -11,8 +10,8 @@ from bleak import discover
 # These values have been randomly generated - they must match between the Central and Peripheral devices
 # Any changes you make here must be suitably made in the Arduino program as well
 
-dataInCharacteristic = '13012F01-F8C3-4F4A-A8F4-15CD926DA146'
-#UUID_2 = '13012F02-F8C3-4F4A-A8F4-15CD926DA146'
+instrCharacteristic = '13012F01-F8C3-4F4A-A8F4-15CD926DA146'		#Instructions to send to mouse
+mouseDataCharacteristic = '13012F02-F8C3-4F4A-A8F4-15CD926DA146'	#Data received from mouse
 
 STATE_IDLE = 0
 STATE_F = 1
@@ -41,29 +40,35 @@ def getValue(val):
 		return bytearray([0x00])
 
 async def sendData(client):
-	global RED
 	userInput = int(input('Enter Instruction to Send :'))
 	print(userInput)
     
 	if(userInput == STATE_IDLE):
-		RED = not RED
-		await client.write_gatt_char(dataInCharacteristic, getValue(STATE_IDLE))
+		await client.write_gatt_char(instrCharacteristic, getValue(STATE_IDLE))
 	elif(userInput == STATE_F):
-		await client.write_gatt_char(dataInCharacteristic, getValue(STATE_F))
+		await client.write_gatt_char(instrCharacteristic, getValue(STATE_F))
 	elif(userInput == STATE_L):
-		await client.write_gatt_char(dataInCharacteristic, getValue(STATE_L))
+		await client.write_gatt_char(instrCharacteristic, getValue(STATE_L))
 	elif(userInput == STATE_R):
-		await client.write_gatt_char(dataInCharacteristic, getValue(STATE_R))
+		await client.write_gatt_char(instrCharacteristic, getValue(STATE_R))
 	elif(userInput == STATE_U):
-		await client.write_gatt_char(dataInCharacteristic, getValue(STATE_U))
+		await client.write_gatt_char(instrCharacteristic, getValue(STATE_U))
 	elif(userInput == STATE_END):
-		await client.write_gatt_char(dataInCharacteristic, getValue(STATE_END))
-	
-	
+		await client.write_gatt_char(instrCharacteristic, getValue(STATE_END))
 		
-async def run():
-	global RED
+	#check to see if the arduino received the right instruction
+	#val = await client.read_gatt_char(instrCharacteristic)	
+	#print("Val = ", val)
+	
+async def recvData(client):
+	#print("Waiting for mouse data...")
 
+	#prints the value sent by the arduino mouseDataCharacteristic
+	val = await client.read_gatt_char(mouseDataCharacteristic)	
+	print("Val = ", val)
+
+
+async def run():
 	print('Arduino Nano BLE LED Peripheral Central Service')
 	print('Looking for Arduino Nano 33 BLE Sense Peripheral Device...')
 
@@ -75,11 +80,12 @@ async def run():
 			found = True
 			async with BleakClient(d.address) as client:
 				print(f'Connected to {d.address}')
-				val = await client.read_gatt_char(dataInCharacteristic)
-				print("Val = ", val)
 
 				while True:
+					await recvData(client)
 					await sendData(client)
+					
+					
 
 	if not found:
 		print('Could not find Arduino Nano 33 BLE Sense Peripheral')
