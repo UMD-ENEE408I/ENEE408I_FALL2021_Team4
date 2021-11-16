@@ -20,6 +20,7 @@ STATE_L = 2
 STATE_R = 3
 STATE_U = 4
 STATE_END = 5
+STATE_CAL = 6
 
 RED = False
 
@@ -37,6 +38,8 @@ def getBinary(val):			#convert int to its binary value
 		return bytearray([0x04])
 	elif val == STATE_END:
 		return bytearray([0x05])
+	elif val == STATE_CAL:
+		return bytearray([0x06])
 	else:
 		return bytearray([0x00])
 
@@ -45,7 +48,7 @@ async def sendData(client):
 	
 	#Checking if user input is valid
 	while(userInput.isnumeric() == False):
-		print("Input must be a numerical from 0-5.")
+		print("Input must be a numerical from 0-6.")
 		userInput = input('Enter Instruction to Send :')
 		
 	userInput = int(userInput)
@@ -63,7 +66,8 @@ async def sendData(client):
 		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_U))
 	elif(userInput == STATE_END):
 		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_END))
-		
+	elif(userInput == STATE_END):
+		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_CAL))	
 	#check to see if the arduino received the right instruction
 	#val = await client.read_gatt_char(instrCharacteristic)	
 	#print("Val = ", val)
