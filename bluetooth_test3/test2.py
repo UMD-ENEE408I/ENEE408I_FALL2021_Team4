@@ -2,6 +2,7 @@ import logging
 import asyncio
 import platform
 import ast
+import struct
 
 from bleak import BleakClient
 from bleak import BleakScanner
@@ -23,7 +24,7 @@ STATE_END = 5
 RED = False
 
 
-def getValue(val):
+def getBinary(val):			#convert int to its binary value
 	if val == STATE_IDLE:
 		return bytearray([0x00])
 	elif val == STATE_F:
@@ -40,32 +41,51 @@ def getValue(val):
 		return bytearray([0x00])
 
 async def sendData(client):
-	userInput = int(input('Enter Instruction to Send :'))
-	print(userInput)
+	userInput = input('Enter Instruction to Send :')
+	
+	#Checking if user input is valid
+	while(userInput.isnumeric() == False):
+		print("Input must be a numerical from 0-5.")
+		userInput = input('Enter Instruction to Send :')
+		
+	userInput = int(userInput)
+	#print(userInput)
     
 	if(userInput == STATE_IDLE):
-		await client.write_gatt_char(instrCharacteristic, getValue(STATE_IDLE))
+		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_IDLE))
 	elif(userInput == STATE_F):
-		await client.write_gatt_char(instrCharacteristic, getValue(STATE_F))
+		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_F))
 	elif(userInput == STATE_L):
-		await client.write_gatt_char(instrCharacteristic, getValue(STATE_L))
+		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_L))
 	elif(userInput == STATE_R):
-		await client.write_gatt_char(instrCharacteristic, getValue(STATE_R))
+		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_R))
 	elif(userInput == STATE_U):
-		await client.write_gatt_char(instrCharacteristic, getValue(STATE_U))
+		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_U))
 	elif(userInput == STATE_END):
-		await client.write_gatt_char(instrCharacteristic, getValue(STATE_END))
+		await client.write_gatt_char(instrCharacteristic, getBinary(STATE_END))
 		
 	#check to see if the arduino received the right instruction
 	#val = await client.read_gatt_char(instrCharacteristic)	
 	#print("Val = ", val)
+
 	
 async def recvData(client):
-	#print("Waiting for mouse data...")
-
-	#prints the value sent by the arduino mouseDataCharacteristic
-	val = await client.read_gatt_char(mouseDataCharacteristic)	
-	print("Val = ", val)
+	global DIRECTION_DATA, DISTANCE_DATA, RESERVED_DATA 
+	print("Waiting for mouse data...")
+	#Read value from mouseDataCharacteristic (Read as BigEndian)
+	mouseData = await client.read_gatt_char(mouseDataCharacteristic)
+	
+	#Convert BigEndian to LittleEndian
+	intBuf = int.from_bytes(mouseData, "little")
+	print(hex(intBuf))
+	
+	DIRECTION_DATA = intBuf & 0b1111
+	DISTANCE_DATA  = (intBuf & 0xFFFF0) >> 4
+	RESERVED_DATA  = (intBuf & 0xFFF00000) >> 20
+	print("Direction = ", DIRECTION_DATA, "\t// ", hex(DIRECTION_DATA), "\t// ", bin(DIRECTION_DATA), )
+	print("Distance  = ", DISTANCE_DATA,  "\t// ", hex(DISTANCE_DATA), "\t// ", bin(DISTANCE_DATA))
+	print("Reserved  = ", RESERVED_DATA,  "\t// ", hex(RESERVED_DATA), "\t// ", bin(RESERVED_DATA))
+	
 
 
 async def run():
@@ -82,11 +102,13 @@ async def run():
 				print(f'Connected to {d.address}')
 
 				while True:
-					await recvData(client)
-					await sendData(client)
-					
-					
-
+					#Check the node bit to see if it hits a node before sending instruction
+					intBuf = int.from_bytes(await client.read_gatt_char(mouseDataCharacteristic), "little")
+					#print("intBuf = ", hex(intBuf))
+					if(intBuf&0x80000000):
+						await recvData(client)
+						await sendData(client)
+	
 	if not found:
 		print('Could not find Arduino Nano 33 BLE Sense Peripheral')
 
