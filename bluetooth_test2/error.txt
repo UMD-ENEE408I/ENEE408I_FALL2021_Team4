@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "bluetooth_values_test.py", line 31, in <module>
+    loop.run_until_complete(run())
+  File "/usr/lib/python3.6/asyncio/base_events.py", line 484, in run_until_complete
+    return future.result()
+  File "bluetooth_values_test.py", line 23, in run
+    dataReceived = await client.read_gatt_char(MOUSE_DATA_UUID)
+  File "/home/tin/.local/lib/python3.6/site-packages/bleak/backends/bluezdbus/client.py", line 677, in read_gatt_char
+    characteristic = self.services.get_characteristic(char_specifier)
+  File "/home/tin/.local/lib/python3.6/site-packages/bleak/backends/service.py", line 180, in get_characteristic
+    "Multiple Characteristics with this UUID, refer to your desired characteristic by the `handle` attribute instead."
+bleak.exc.BleakError: Multiple Characteristics with this UUID, refer to your desired characteristic by the `handle` attribute instead.
