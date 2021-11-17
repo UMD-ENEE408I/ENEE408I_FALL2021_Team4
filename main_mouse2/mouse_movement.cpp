@@ -159,8 +159,8 @@ void drive_stop(int speed){
 void drive_right(int speed, int *velocity_correction){
     int turn_correction = turn_error();
 
-      L_forward(speed);
-      R_backward(speed + turn_correction + *velocity_correction);  
+      L_forward(speed+ *velocity_correction);
+      R_backward(speed + turn_correction );  
 }
 
 void drive_left(int speed, int *velocity_correction){
@@ -178,7 +178,7 @@ void turn_right(int speed, uint16_t *line_data, int *velocity_correction){
     enc2.write(0);
 
     drive_right(speed, velocity_correction);
-    delay(150); 
+    delay(150); //replace with gyroscope to turn at least 45 degrees before detecting line again, do for turn_left too
     
     while(1){       
         /*char buf[50];
