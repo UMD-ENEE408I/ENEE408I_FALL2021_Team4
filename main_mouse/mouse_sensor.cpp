@@ -45,3 +45,27 @@ void printThreshold(){
       Serial.print(adc_threshhold[i]); Serial.print(" ");
     } Serial.println();  
 };
+
+int detectIntersection(uint16_t *line_data){
+    if((*line_data&0b0000000001111) == 0b0000000001111 || 
+       (*line_data&0b1111000000000) == 0b1111000000000     )
+        return 1;
+    else
+        return 0;
+}
+
+int spinCalibrate(int speed, int *velocity_correction, uint16_t *line_data, int *arr){
+    /*arr[12]= adc1.readADC(0);  arr[11]= adc2.readADC(0);
+    arr[10]= adc1.readADC(1);  arr[9] = adc2.readADC(1);
+    arr[8] = adc1.readADC(2);  arr[7] = adc2.readADC(2);
+    arr[6] = adc1.readADC(3);  arr[5] = adc2.readADC(3);
+    arr[4] = adc1.readADC(4);  arr[3] = adc2.readADC(4);
+    arr[2] = adc1.readADC(5);  arr[1] = adc2.readADC(5); 
+    arr[0] = adc1.readADC(6); 
+
+    //drive_left(int speed, int *velocity_correction);
+
+    arr[0] = (adc1.readADC(6) < arr[0]) ? adc1.readADC(6) : arr[0];
+    */
+    //NONFUNCTIONAL
+}

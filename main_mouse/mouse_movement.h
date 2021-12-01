@@ -28,7 +28,7 @@ int center_error(uint16_t *line_data);  //calculates the error difference and re
 int encoder_error();
 
 void L_backward(int speed);
-void L_forward(int speed);
+void L_forward(int speed, int *velocity_correction);
 void L_stop();
 
 void R_backward(int speed);
@@ -40,15 +40,15 @@ void drive_backward(int speed);
 
 void drive_stop(int speed);
 
-void drive_right(int speed);  //turn and doesnt stop
-void drive_left(int speed);
+void drive_right(int speed, int *velocity_correction);  //turn and doesnt stop
+void drive_left(int speed, int *velocity_correction);
 
-void turn_right(int speed, uint16_t *line_data);   //turn and stop when it hits line
-void turn_left(int speed, uint16_t *line_data);
+void turn_right(int speed, uint16_t *line_data, int *velocity_correction);   //turn and stop when it hits line
+void turn_left(int speed, uint16_t *line_data, int *velocity_correction);
 //void inch_forward(int speed, int duration);
 //void inch_backward(int speed, int duration);
 
-void inch_forward(int speed, int angle);
+void inch_forward(int speed, int angle, uint16_t *line_data, uint32_t *bt_buffer);
 void inch_backward(int speed, int angle);
 
 #endif

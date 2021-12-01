@@ -6,7 +6,7 @@
 #define ADC_1_CS A3
 #define ADC_2_CS A2
 
-#define ADC_ERROR_MARGIN 60  // threshold = white line value + error margin
+#define ADC_ERROR_MARGIN 55  // threshold = white line value + error margin
 
 extern Adafruit_MCP3008 adc1;
 extern Adafruit_MCP3008 adc2;
@@ -19,5 +19,7 @@ void read_line(uint16_t *line_data);  //takes in a 16-bit buffer and stores sens
 void calibrate_adc(int *arr);  
 void printThreshold();
 
+int detectIntersection(uint16_t *line_data);  //returns 1 if it sees a left or right intersection. return 0 otherwise.
 
+int spinCalibrate(int speed, int *velocity_correction, uint16_t *line_data, int *arr);
 #endif                                      
