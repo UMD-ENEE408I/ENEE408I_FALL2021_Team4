@@ -7,22 +7,15 @@
 Encoder enc1(M1_ENC_A, M1_ENC_B); //left wheel
 Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
 
-
-const double Kp_center = 4;  //3
-const double Ki_center = 0;
-const double Kd_center = 3;  //0.8
 int prev_error_center;
 
-const double Kp_enc = 2; //.2
-const double Ki_enc = 0;   
-const double Kd_enc = 0.4;  //.2
+const double Kp_enc = 0.1;  //2 
+const double Kd_enc = 0.05; //.4
 int prev_error_enc;
 
-const double Kp_turn = 3; 
-const double Ki_turn = 0;    
-const double Kd_turn = 1.6;   //1.2
+const double Kp_turn = 3;   
+const double Kd_turn = 2;   //1.6
 int prev_error_turn;
- 
 
 
 
@@ -51,14 +44,18 @@ int center_error(uint16_t *line_data){
           R_error = i;
     }
     
+    double Kp_center = 7;     //3  4.2  5.4
+    double Kd_center = 4;     //3  3.8  4.0  
     int error = L_error - R_error;
-    int P, I, D;
-    
-    P = error;
-    I = error + prev_error_enc;
-    D = error - prev_error_center;
+
+    //Increase scaling coefficient when closer to the center
+    if(abs(error) == 1){
+        Kp_center = 9;
+        Kd_center = 3;
+    }
+
     prev_error_center = error;
-    int error_correction = int(P*Kp_center + I*Ki_center + D*Kd_center); 
+    int error_correction = int((error)*Kp_center + (error - prev_error_center)*Kd_center); 
 
     return error_correction;
 }
@@ -66,29 +63,33 @@ int center_error(uint16_t *line_data){
 int encoder_error(){
     int error = enc1.read() - enc2.read();
 
-    int P, I, D;
+    int P, D;
     P = error;
-    I = error + prev_error_enc;
     D = error - prev_error_enc;
     prev_error_enc = error;
-    int error_correction = int(P*Kp_enc + I*Ki_enc + D*Kd_enc);
+    int error_correction = int(P*Kp_enc + D*Kd_enc);
 
-    return error_correction%10;
+    if(error_correction > 5)
+      error_correction = 5;
+      
+    //return error_correction%10; //works
+    return error_correction;
 }
 
 int turn_error(){
     int error = enc1.read() + enc2.read();
     
-    int P, I, D;
+    int P, D;
     P = error;
-    I = error + prev_error_enc;
-    D = error - prev_error_enc;
-    prev_error_enc = error;
-    int error_correction = int(P*Kp_turn + I*Ki_turn + D*Kd_turn);
+    D = error - prev_error_turn;
+    prev_error_turn = error;
+    int error_correction = int(P*Kp_turn + D*Kd_turn);
+
 
     if(error_correction > 5)
       error_correction = 5;
 
+    //return error_correction%10;
     return error_correction;
 }
 
@@ -125,15 +126,9 @@ void R_stop(){
 void drive_forward(int speed, uint16_t *line_data){   
     int center_correction = center_error(line_data);
     int enc_correction = encoder_error();
-    
+
     int L_speed = speed - enc_correction - center_correction;
     int R_speed = speed;
-    
-    /*
-    char buf[50];
-    sprintf(buf, "L: %i, R: %i\n",enc1.read(),enc2.read());
-    Serial.print(buf);
-    */
     
     L_forward(L_speed);
     R_forward(R_speed);
@@ -145,35 +140,31 @@ void drive_backward(int speed){
 }
 
 void drive_stop(int speed){  
-    /*while(speed > 0){
-        speed --;
-        if(speed<0) speed = 0;
-     
-        drive_forward(speed, NULL);
-    }
-    */
     R_stop();
     L_stop();
 }
 
+
 void drive_right(int speed, int *velocity_correction){
     int turn_correction = turn_error();
 
-      L_forward(speed);
-      R_backward(speed + turn_correction + *velocity_correction);  
+    L_forward(speed + *velocity_correction);
+    R_backward(speed + turn_correction);  
 }
 
 void drive_left(int speed, int *velocity_correction){
     int turn_correction = turn_error();
     
-    L_backward(speed + turn_correction - *velocity_correction);
-    R_forward(speed); 
+    L_backward(speed + turn_correction);
+    R_forward(speed + *velocity_correction); 
 }
 
 void turn_right(int speed, uint16_t *line_data, int *velocity_correction){
     //uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
     int slowdown;
 
+    *velocity_correction = 0;
+    prev_error_turn = 0;
     enc1.write(0);
     enc2.write(0);
 
@@ -181,22 +172,16 @@ void turn_right(int speed, uint16_t *line_data, int *velocity_correction){
     delay(150); 
     
     while(1){       
-        /*char buf[50];
-        sprintf(buf, "L: %i, R: %i\n",enc1.read(),enc2.read());
-        Serial.print(buf);
-        */
-        
         slowdown = 0;
         for(int i=0; i<6; i++){
-          if((0x0001<<i) & *line_data)
+          if((0b0010<<i) & *line_data)
             slowdown=i;
         }
         
         drive_right(speed - (slowdown*SLOW_COEFF), velocity_correction);  
-        //read_line(&local_line_data);
         
         if((*line_data&0b0000001000000) &&  
-           (*line_data&0b1111100011111) == 0   )
+           (*line_data&0b1111100011111) == 0 )
           break;
     }
     drive_stop(0);
@@ -209,6 +194,8 @@ void turn_left(int speed, uint16_t *line_data, int *velocity_correction){
     uint16_t local_line_data;   //named local to not be confused with the line_data used in the main function
     int slowdown;
 
+    *velocity_correction = 0;
+    prev_error_turn = 0;
     enc1.write(0);
     enc2.write(0);
 
@@ -224,8 +211,6 @@ void turn_left(int speed, uint16_t *line_data, int *velocity_correction){
         }
         
         drive_left(speed - (slowdown*SLOW_COEFF), velocity_correction);
-        //read_line(&local_line_data);    
-        
           
         if((*line_data&0b0000001000000) &&  
            (*line_data&0b1111100011111) == 0   )
@@ -237,7 +222,7 @@ void turn_left(int speed, uint16_t *line_data, int *velocity_correction){
     enc2.write(0);
 }
 
-void inch_forward(int speed, int angle){
+void inch_forward(int speed, int angle, uint16_t *line_data, uint32_t *bt_buffer){
     enc1.write(0);
     enc2.write(0);
 
@@ -253,6 +238,11 @@ void inch_forward(int speed, int angle){
         enc_correction = encoder_error();
         L_speed = speed + enc_correction;
         L_forward(L_speed);
+
+        if((*line_data&0b1111000000000) == 0b1111000000000)
+            *bt_buffer |= 0b100;
+        if((*line_data&0b0000000001111) == 0b0000000001111)
+            *bt_buffer |= 0b001; 
     }
     drive_stop(speed);
 

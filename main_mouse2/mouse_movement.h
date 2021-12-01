@@ -48,7 +48,7 @@ void turn_left(int speed, uint16_t *line_data, int *velocity_correction);
 //void inch_forward(int speed, int duration);
 //void inch_backward(int speed, int duration);
 
-void inch_forward(int speed, int angle);
+void inch_forward(int speed, int angle, uint16_t *line_data, uint32_t *bt_buffer);
 void inch_backward(int speed, int angle);
 
 #endif

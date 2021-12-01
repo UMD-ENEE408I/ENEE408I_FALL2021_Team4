@@ -1,6 +1,7 @@
 static uint32_t bluetooth_buffer;
 static uint16_t line_data;
 static uint8_t  current_state;
+static uint8_t  turn_flag;            //=1 whenever a turn is made. will be turned off in t2_func()
 static int      velocity_correction;
 
 #include <ArduinoBLE.h>
@@ -12,8 +13,9 @@ static int      velocity_correction;
 
 #include "template_functions.h"   //OPTIONAL. includes functions to print out binary
 
-#define DEFAULT_SPEED 32  //speed of the car
-#define TURN_SPEED    34
+#define DEFAULT_SPEED   32  //speed of the car
+#define TURN_SPEED      34
+#define MAX_CORRECTION  12  //max correction value for velocity
 char str_buf[128];
 
 
@@ -27,6 +29,7 @@ void setup() {
 
   bluetooth_buffer = 0;   //preset buffer value
   current_state    = 0;
+  turn_flag       = 0;   //initially use right wheel as constant velocity
   
   velocity_correction = 0;
   
@@ -53,19 +56,20 @@ void setup() {
   t1.start(t1_func);
   t2.start(t2_func);
 }
-
+ 
 void loop() {
   //read_line(&line_data);
   //printBinaryN(line_data, 13);
     uint8_t CURRENT_STATE = 0;
-  
-  // listen for BLE centrals to connect:
+    uint16_t data_buffer = 0;
+
+    // listen for BLE centrals to connect:
     BLEDevice central = BLE.central();
 
     // if a central is connected to peripheral:
     if (central) {
-        Serial.print("Connected to central: ");
-        Serial.println(central.address());
+        //Serial.print("Connected to central: ");
+        //Serial.println(central.address());
 
         // while the central is still connected to peripheral:
         while (central.connected()) {
@@ -90,19 +94,19 @@ void loop() {
                     mouseDataCharacteristic.writeValue(bluetooth_buffer); 
                                 
                     while(!detectIntersection(&line_data)){   //continuously look for intersection
-                        drive_forward(DEFAULT_SPEED, &line_data);
+                        drive_forward(DEFAULT_SPEED+velocity_correction, &line_data);
                     }
                     drive_stop(0);
                     
                     bluetooth_buffer |= uint16_t(enc2.read()<<4); //copy down encoder value
-                    
+
                     if((line_data&0b1111000000000) == 0b1111000000000)
                         bluetooth_buffer |= 0b100;
                     if((line_data&0b0000000001111) == 0b0000000001111)
-                        bluetooth_buffer |= 0b001;
-
-                    inch_forward(DEFAULT_SPEED + velocity_correction, 90);
-                    if(line_data&0b0000011100000)   //front path detected
+                        bluetooth_buffer |= 0b001;                 
+                    
+                    inch_forward(DEFAULT_SPEED + velocity_correction, 140, &line_data, &bluetooth_buffer);
+                    if(line_data&0b0000111110000)   //front path detected
                         bluetooth_buffer |= 0b010;
                     if((line_data&0b0000111110000) == 0b0000111110000)   //end point detected
                         bluetooth_buffer |= 0b1000;
@@ -112,18 +116,20 @@ void loop() {
                  case L_STATE:
                     bluetooth_buffer &= 0;    //reset buffer value  
                     mouseDataCharacteristic.writeValue(bluetooth_buffer); 
-
-                    //inch_forward(DEFAULT_SPEED + velocity_correction, 90);
+                    
+                    //inch_forward(DEFAULT_SPEED + velocity_correction_L, 90);
                     turn_left(TURN_SPEED, &line_data, &velocity_correction);  
-
+                    turn_flag = 1;
+                    
                     CURRENT_STATE = F_STATE;
                     break;
                  case R_STATE:
                     bluetooth_buffer &= 0;    //reset buffer value  
                     mouseDataCharacteristic.writeValue(bluetooth_buffer); 
                     
-                    //inch_forward(DEFAULT_SPEED + velocity_correction, 90);
+                    //inch_forward(DEFAULT_SPEED + velocity_correction_L, 90);
                     turn_right(TURN_SPEED, &line_data, &velocity_correction);
+                    turn_flag = 1;
                     
                     CURRENT_STATE = F_STATE;
                     break;
@@ -132,6 +138,7 @@ void loop() {
                     mouseDataCharacteristic.writeValue(bluetooth_buffer);
 
                     turn_left(TURN_SPEED, &line_data, &velocity_correction); 
+                    turn_flag = 1;
 
                     CURRENT_STATE = F_STATE;
                     break;
@@ -153,10 +160,9 @@ void loop() {
 
         }
 
-
         // when the central disconnects, print it out:
-        Serial.print(F("Disconnected from central: "));
-        Serial.println(central.address());
+        //Serial.print(F("Disconnected from central: "));
+        //Serial.println(central.address());
     }
   
   
@@ -172,27 +178,35 @@ void t1_func(){
 
 //THREAD2: Continuously regulates the velocity of the wheel by adjusting the voltage based on rotation per 50ms
 void t2_func(){
-    int current_rotation = enc2.read();
+    //Setting up initial value
+    int current_rotation = abs(enc2.read());
     int prev_rotation    = enc2.read();
     int rotation_per_ms  = 0;
     
     int error      = 0;
     int prev_error = 0;
     while(1){
-        wait_us(50000); //50ms        
+        //If turn_state was a left turn, use the right wheel as the constant velocity wheel
+        wait_us(10000); //10ms  (10000us)     
 
-        current_rotation = enc2.read();
+        if(turn_flag == 1){
+            error      = 0;
+            prev_error = 0;
+            turn_flag  = 0;
+        }
+    
+        current_rotation = abs(enc2.read());
         
         rotation_per_ms = current_rotation - prev_rotation;
         prev_rotation   = current_rotation;
 
-        error = 50 - rotation_per_ms;
+        error = MAX_CORRECTION - rotation_per_ms;
         prev_error = error;
-        velocity_correction = int(error*0.4 + (error-prev_error)*0.1);
+        int temp = int(error*1.2 + (error-prev_error)*0.3);
 
-        if(velocity_correction > 10)
-            velocity_correction = 10;
+        velocity_correction = (temp > MAX_CORRECTION) ? MAX_CORRECTION : temp;
     }
+
 }
 
 /*~~~NOTES~~~
@@ -201,21 +215,3 @@ void t2_func(){
     
     Centered line value = 13'B1111000000000   //left point
 */
-
-
-//DRIVING STRIGHT and TURN test code
-/*
- if((line_data&0b1111000000000) == 0b1111000000000){
-          inch_forward(DEFAULT_SPEED + velocity_correction, 90);
-          turn_left(TURN_SPEED + velocity_correction, &line_data);  
-          delay(100);
-      }
-      else if((line_data&0b0000000001111) == 0b0000000001111){
-          inch_forward(DEFAULT_SPEED + velocity_correction, 90);
-          turn_right(TURN_SPEED + velocity_correction, &line_data);
-          delay(100);
-      }
-      else{
-          drive_forward(DEFAULT_SPEED + velocity_correction, &line_data);
-      }
- */

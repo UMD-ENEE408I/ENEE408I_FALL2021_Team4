@@ -84,3 +84,10 @@
            break;
   };
   */
+
+
+  /*
+    char buf[50];
+    sprintf(buf, "L: %i, R: %i\n",enc1.read(),enc2.read());
+    Serial.print(buf);
+    */
