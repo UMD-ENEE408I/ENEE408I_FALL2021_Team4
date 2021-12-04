@@ -6,16 +6,19 @@
 double lineSetpoint, lineError, lineCorrection;  //input and output
 PID motorPID(&lineError, &lineCorrection, &lineSetpoint, 1.5, 0.15, 0.23, DIRECT); //setPint, Kd=1.5, Ki, Kd=0.25
 
-double rotationSetpoint;
-double rotationError, rotationCorrection; //controls the two wheel to have the same rotation angle
-PID rotationPID(&rotationError, &rotationCorrection, &rotationSetpoint, 0.2, 0.001, 0.012, DIRECT); //Kd=0.2, Ki, Kd=0.01
+double zeroSetpoint;
 
-double angleSetpoint;
+double encError, encCorrection; //keeps vehicle straight if there's no line to follow
+PID encPID(&encError, &encCorrection, &zeroSetpoint,  0.2, 0.002, 0.007, DIRECT); //Kd=0.2, Ki=0, Kd=0.007
+
+double rotationError, rotationCorrection; //controls the two wheel to have the same rotation angle during the turn
+PID rotationPID(&rotationError, &rotationCorrection, &zeroSetpoint, 0.2, 0.001, 0.012, DIRECT); //Kd=0.2, Ki, Kd=0.01
+
 double leftTurnError, leftTurnCorrection; //keeps the wheel turning at constant velocity
-PID leftTurnPID(&leftTurnError, &leftTurnCorrection, &angleSetpoint, 1, 0, 0, DIRECT); //Kd=, Ki=, Kd=
+PID leftTurnPID(&leftTurnError, &leftTurnCorrection, &zeroSetpoint, 0.18, 0.01, 0.0004, DIRECT); //Kd=, Ki=, Kd=
 
 double rightTurnError, rightTurnCorrection; //keeps the wheel turning at constant velocity
-PID rightTurnPID(&rightTurnError, &rightTurnCorrection, &angleSetpoint, 0.18, 0.01, 0.0004, DIRECT); //Kd=0.15, Ki=0.01, Kd=0.0005
+PID rightTurnPID(&rightTurnError, &rightTurnCorrection, &zeroSetpoint, 0.18, 0.01, 0.0004, DIRECT); //Kd=0.15, Ki=0.01, Kd=0.0005
 
 
 //FOR THE GYRO
@@ -43,17 +46,22 @@ Encoder enc2(M2_ENC_A, M2_ENC_B); //right wheel
 
 //ADDED
 void setupPID(){
+    lineSetpoint = 0;
     motorPID.SetOutputLimits(-255,255);
     motorPID.SetMode(AUTOMATIC);
-    lineSetpoint = 0;
+
+    zeroSetpoint = 0;
+    encPID.SetOutputLimits(-15,15);
+    encPID.SetMode(AUTOMATIC);
     
     rightTurnPID.SetOutputLimits(-255,255);
     rightTurnPID.SetMode(AUTOMATIC);
-    angleSetpoint = 0;
 
-    rotationPID.SetOutputLimits(-10,10);
+    leftTurnPID.SetOutputLimits(-255,255);
+    leftTurnPID.SetMode(AUTOMATIC);
+
+    rotationPID.SetOutputLimits(-15,15);
     rotationPID.SetMode(AUTOMATIC);  
-    rotationSetpoint = 0;
 }
 
 void calculateSensorError(uint16_t *line_data){
@@ -161,6 +169,23 @@ void drive_backward(int speed){
     R_backward(speed);
 }
 
+void drive_straight(int speed){
+    calculateGyro(&gyroRPS, &gyroAngle);
+    //angleError = gyroAngle;
+    //anglePID.Compute();
+    encError = enc1.read() - enc2.read();
+    encPID.Compute();
+    
+    /*int L_speed = constrain(speed + angleCorrection, 0, 255);
+    int R_speed = constrain(speed - angleCorrection, 0, 255);*/
+    
+    int L_speed = constrain(speed + encCorrection, 0, 255);
+    int R_speed = constrain(speed - encCorrection, 0, 255);
+    
+    L_forward(L_speed);
+    R_forward(R_speed);
+}
+
 void drive_stop(int speed){  
     R_stop();
     L_stop();
@@ -170,7 +195,6 @@ void drive_stop(int speed){
 void drive_right(int speed){
     calculateGyro(&gyroRPS, &gyroAngle);
 
-    //Serial.println(abs(gyroRPS));
     //PID to maintain constant linear velocity
     rightTurnError = 100.0 - abs(gyroRPS); //desired "rps"
     rightTurnPID.Compute();
@@ -187,43 +211,75 @@ void drive_right(int speed){
 }
 
 void drive_left(int speed){
+    calculateGyro(&gyroRPS, &gyroAngle);
 
-    L_backward(speed);
-    R_forward(speed); 
+    //PID to maintain constant linear velocity
+    leftTurnError = 100.0 - abs(gyroRPS); //desired "rps"
+    leftTurnPID.Compute();
+    
+    //PID to keep right wheel following same rotation as left wheel
+    rotationError = enc1.read() + enc2.read();
+    rotationPID.Compute();
+   
+    int L_speed = constrain(speed - leftTurnCorrection - rotationCorrection, 0, 255);
+    int R_speed = constrain(speed - leftTurnCorrection + rotationCorrection, 0, 255);
+    
+    L_backward(L_speed);
+    R_forward(R_speed); 
 }
 
 void turn_right(int speed, uint16_t *line_data, float targetAngle){
-    //calculateGyro(&gyroRPS, &gyroAngle);
-    //rightTurnPID.Compute();
-/*    gyroRPS   = 0;
     gyroAngle = 0;
     enc1.write(0);
     enc2.write(0);
-    
+
+    //Turning the desired angle amount
     while(abs(gyroAngle) < targetAngle){
         drive_right(speed);
     }
+
+    //Making sure it's on a line when it stops
+    while(!(*line_data&0b0000001000000)){
+        drive_right(speed);
+    }
     
-    //drive_stop(0);
-    */
+    drive_stop(0);
+    
     enc1.write(0);
     enc2.write(0);
 }
 
-void turn_left(int speed, uint16_t *line_data){
+void turn_left(int speed, uint16_t *line_data, float targetAngle){
+    gyroAngle = 0;
+    enc1.write(0);
+    enc2.write(0);
+
+    //Turning the desired angle amount
+    while(abs(gyroAngle) < targetAngle){
+        drive_left(speed);
+    }
+
+    //Making sure it's on a line when it stops
+    while(!(*line_data&0b0000001000000)){
+        drive_left(speed);
+    }
+    
+    drive_stop(0);
+    
+    enc1.write(0);
+    enc2.write(0);
+}
+
+void inch_forward(int speed, int targetAngle, uint16_t *line_data, uint32_t *bt_buffer){
+    gyroAngle = 0;
+    enc1.write(0);
+    enc2.write(0);
+
+    while(abs(enc2.read()) < targetAngle){  //targetAngle is how much the right wheel whould spin before stopping.
+        drive_straight(speed);
+    }
 
     drive_stop(0);
-
-    enc1.write(0);
-    enc2.write(0);
-}
-
-void inch_forward(int speed, int angle, uint16_t *line_data, uint32_t *bt_buffer){
-    enc1.write(0);
-    enc2.write(0);
-
-    drive_stop(speed);
-
     enc1.write(0);
     enc2.write(0);
 }

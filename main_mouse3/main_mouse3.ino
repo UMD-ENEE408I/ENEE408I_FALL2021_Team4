@@ -15,7 +15,7 @@ static int      velocity_correction;
 #include "template_functions.h"   //OPTIONAL. includes functions to print out binary
 
 #define DEFAULT_SPEED   36  //speed of the car
-#define TURN_SPEED      34
+#define TURN_SPEED      36
 #define MAX_CORRECTION  12  //max correction value for velocity
 char str_buf[128];
 
@@ -64,10 +64,17 @@ void loop() {
   //read_line(&line_data);
   //printBinaryN(line_data, 13);
   
-  //turn_right(TURN_SPEED, &line_data, 90); //turn 90deg
-  drive_right(TURN_SPEED);
+  //turn_right(TURN_SPEED, &line_data, 45); //turn at least 45deg before searching for line
+  //drive_right(TURN_SPEED);
+
+  //turn_left(TURN_SPEED, &line_data, 45);
+  //drive_left(TURN_SPEED);
+
+  //inch_forward(DEFAULT_SPEED, 240, &line_data, &bluetooth_buffer);
+  //delay(3000);
   
-  //drive_forward(DEFAULT_SPEED, &line_data);
+  //drive_straight(DEFAULT_SPEED);
+  drive_forward(DEFAULT_SPEED, &line_data);
 }
 
 //THREAD1: Continuosly updates the line_data

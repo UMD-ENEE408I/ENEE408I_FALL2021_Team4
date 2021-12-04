@@ -31,6 +31,7 @@ void R_stop();
 
 void drive_forward(int speed, uint16_t *line_data);
 void drive_backward(int speed);
+void drive_straight(int speed);   //drives straight without following line
 
 void drive_stop(int speed);
 
@@ -38,9 +39,9 @@ void drive_right(int speed);  //turn and doesnt stop
 void drive_left(int speed);
 
 void turn_right(int speed, uint16_t *line_data, float targetAngle);   //turn and stop when it hits line
-void turn_left(int speed, uint16_t *line_data);
+void turn_left(int speed, uint16_t *line_data, float targetAngle);
 
-void inch_forward(int speed, int angle, uint16_t *line_data, uint32_t *bt_buffer);
+void inch_forward(int speed, int targetAngle, uint16_t *line_data, uint32_t *bt_buffer);
 void inch_backward(int speed, int angle);
 
 #endif
