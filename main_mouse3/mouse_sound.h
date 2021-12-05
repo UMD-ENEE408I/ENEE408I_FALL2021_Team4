@@ -10,9 +10,14 @@ extern int calibrate_begin_delay[3];
 extern int calibrate_end_sound[2];
 extern int calibrate_end_delay[2];
 
+extern int victory_sound[10];
+extern int victory_delay[10];
+
+extern int mario_melody[135];
+extern int mario_tempo[135];
+
 void play_sound(int *arr_sound, int *arr_delay, int arr_size);
-
-
+void play_sound_thread(int *arr_sound, int *arr_delay, int arr_size);
 //IGNORE
 #define NOTE_B0  31
 #define NOTE_C1  33

@@ -10,6 +10,7 @@ using namespace mbed;
 using namespace rtos;
 //Threads. Create a new one for each new function you want to run in parallel
 Thread t1;
+Thread t2;
 
 //CURRENT STATE DEFINITIONS
 #define IDLE_STATE  0

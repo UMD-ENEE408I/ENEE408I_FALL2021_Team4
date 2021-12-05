@@ -277,6 +277,11 @@ void inch_forward(int speed, int targetAngle, uint16_t *line_data, uint32_t *bt_
 
     while(abs(enc2.read()) < targetAngle){  //targetAngle is how much the right wheel whould spin before stopping.
         drive_straight(speed);
+
+        if((*line_data&0b1111000000000) == 0b1111000000000)
+            *bt_buffer |= 0b100;
+        if((*line_data&0b0000000001111) == 0b0000000001111)
+            *bt_buffer |= 0b001; 
     }
 
     drive_stop(0);

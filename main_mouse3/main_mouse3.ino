@@ -56,6 +56,7 @@ void setup() {
   
   //Initiate rtos functions
   t1.start(t1_func);
+  //t2.start(t2_func);
 }
 
 
@@ -74,7 +75,7 @@ void loop() {
   //delay(3000);
   
   //drive_straight(DEFAULT_SPEED);
-  drive_forward(DEFAULT_SPEED, &line_data);
+  //drive_forward(DEFAULT_SPEED, &line_data);
 }
 
 //THREAD1: Continuosly updates the line_data
@@ -84,7 +85,12 @@ void t1_func(){
     }
 }
 
-
+void t2_func(){
+    //uncomment t2.start(t2_func); in the setup to enable this function
+    while(1){
+        PLAY_SOUND(mario_melody, mario_tempo);
+    }
+}
 
 
 
