@@ -15,10 +15,10 @@ double rotationError, rotationCorrection; //controls the two wheel to have the s
 PID rotationPID(&rotationError, &rotationCorrection, &zeroSetpoint, 0.2, 0.001, 0.012, DIRECT); //Kd=0.2, Ki, Kd=0.01
 
 double leftTurnError, leftTurnCorrection; //keeps the wheel turning at constant velocity
-PID leftTurnPID(&leftTurnError, &leftTurnCorrection, &zeroSetpoint, 0.2, 0, 0.0005, DIRECT); //Kd=, Ki=, Kd=
+PID leftTurnPID(&leftTurnError, &leftTurnCorrection, &zeroSetpoint, 0.18, 0, 0.0005, DIRECT); //Kd=, Ki=, Kd=
 
 double rightTurnError, rightTurnCorrection; //keeps the wheel turning at constant velocity
-PID rightTurnPID(&rightTurnError, &rightTurnCorrection, &zeroSetpoint, 0.2, 0, 0.0005, DIRECT); //Kd=0.18, Ki=0.01, Kd=0.0004
+PID rightTurnPID(&rightTurnError, &rightTurnCorrection, &zeroSetpoint, 0.18, 0, 0.0005, DIRECT); //Kd=0.18, Ki=0.01, Kd=0.0004
 
 
 //FOR THE GYRO
@@ -200,8 +200,8 @@ void drive_right(int speed){
     rightTurnPID.Compute();
     
     //PID to keep right wheel following same rotation as left wheel
-    rotationError = enc1.read() + enc2.read();
-    rotationPID.Compute();
+    //rotationError = enc1.read() + enc2.read();
+    //rotationPID.Compute();
    
     int L_speed = constrain(speed - rightTurnCorrection , 0, 255);  //+ rotationCorrection
     int R_speed = constrain(speed - rightTurnCorrection , 0, 255);  ///- rotationCorrection
@@ -218,8 +218,8 @@ void drive_left(int speed){
     leftTurnPID.Compute();
     
     //PID to keep right wheel following same rotation as left wheel
-    rotationError = enc1.read() + enc2.read();
-    rotationPID.Compute();
+    //rotationError = enc1.read() + enc2.read();
+    //rotationPID.Compute();
    
     int L_speed = constrain(speed - leftTurnCorrection , 0, 255); //- rotationCorrection
     int R_speed = constrain(speed - leftTurnCorrection , 0, 255); //+ rotationCorrection

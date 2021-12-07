@@ -101,7 +101,7 @@ void loop() {
                 bluetooth_buffer |= 0b001;                 
 
             if(current_state != U_STATE)
-                inch_forward(DEFAULT_SPEED, 180, &line_data, &bluetooth_buffer);
+                inch_forward(DEFAULT_SPEED, 160, &line_data, &bluetooth_buffer); //changed from 180 to 160
             
             if(line_data&0b0000111110000)   //front path detected
                 bluetooth_buffer |= 0b010;
