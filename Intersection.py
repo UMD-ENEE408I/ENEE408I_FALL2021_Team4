@@ -214,8 +214,11 @@ def check_children(curr, mouse):
         if curr.finished == True:
             curr.prev.finished = True
             return
-
-    set_node_dead(curr)
+    if curr.finished:
+        curr.prev.finished = True
+        return
+    else:
+        set_node_dead(curr)
     comm.send_instr(UTURN)
     return_to_alive(curr, mouse)
 
@@ -228,9 +231,9 @@ def check_children(curr, mouse):
 # right = dir & 0b0001
 # location  = [0, 0]
 
-root = Intersection(0, 1, 0, [0,0], 0)
-mouse = Mouse(1, root)
-check_children(root, mouse)
+# root = Intersection(0, 1, 0, [0,0], 0)
+# mouse = Mouse(1, root)
+# check_children(root, mouse)
 
 
 
